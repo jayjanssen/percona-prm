@@ -12,39 +12,41 @@ primitive p_mysql ocf:percona:mysql \
         op monitor interval="5s" role="Master" OCF_CHECK_LEVEL="1" \
         op monitor interval="2s" role="Slave" OCF_CHECK_LEVEL="1"
 
-
-primitive reader_vip_1 ocf:heartbeat:IPaddr2 \
-        params ip="192.168.70.11" nic="eth1" \
-        meta target-role="Started"
-primitive reader_vip_2 ocf:heartbeat:IPaddr2 \
-        params ip="192.168.70.12" nic="eth1"
-primitive reader_vip_3 ocf:heartbeat:IPaddr2 \
-        params ip="192.168.70.13" nic="eth1"
-primitive writer_vip ocf:heartbeat:IPaddr2 \
-        params ip="192.168.70.10" nic="eth1" \ 
-	meta target-role="Started"
-
 ms ms_MySQL p_mysql \
         meta master-max="1" master-node-max="1" clone-max="3" clone-node-max="1" notify="true" globally-unique="false" target-role="Master" is-managed="true"
 
+
+primitive reader_vip_1 ocf:heartbeat:IPaddr2 \
+      params ip="192.168.70.11" nic="eth1" \
+      meta target-role="Started"
+primitive reader_vip_2 ocf:heartbeat:IPaddr2 \
+      params ip="192.168.70.12" nic="eth1"
+primitive reader_vip_3 ocf:heartbeat:IPaddr2 \
+      params ip="192.168.70.13" nic="eth1"
+primitive writer_vip ocf:heartbeat:IPaddr2 \
+      params ip="192.168.70.10" nic="eth1" \ 
+	meta target-role="Started"
+
 location No-reader-vip-1-loc reader_vip_1 \
-        rule $id="No-reader-vip-1-rule" -inf: readerOK eq 0
+        rule $id="No-reader-vip-1-rule" -inf: readable eq 0
 location No-reader-vip-2-loc reader_vip_2 \
-        rule $id="No-reader-vip-2-rule" -inf: readerOK eq 0
+        rule $id="No-reader-vip-2-rule" -inf: readable eq 0
 location No-reader-vip-3-loc reader_vip_3 \
-        rule $id="No-reader-vip-3-rule" -inf: readerOK eq 0
-location No-writer-vip-loc writer_vip \
-        rule $id="No-writer-vip-rule" -inf: writerOK eq 0
+        rule $id="No-reader-vip-3-rule" -inf: readable eq 0
 colocation reader_vip_1_dislike_reader_vip_2 -200: reader_vip_1 reader_vip_2
 colocation reader_vip_1_dislike_reader_vip_3 -200: reader_vip_1 reader_vip_3
 colocation reader_vip_2_dislike_reader_vip_3 -200: reader_vip_2 reader_vip_3
+
+colocation writer_vip_on_master inf: writer_vip ms_MySQL:Master
+order ms_MySQL_promote_before_vip inf: ms_MySQL:promote writer_vip:start
+
 property $id="cib-bootstrap-options" \
-        dc-version="1.0.11-a15ead49e20f047e129882619ed075a65c1ebdfe" \
-        cluster-infrastructure="openais" \
-        expected-quorum-votes="3" \
-        stonith-enabled="false" \
-        no-quorum-policy="ignore" \
-        last-lrm-refresh="1322236006"
+	dc-version="1.1.7-6.el6-148fccfd5985c5590cc601123c6c16e966b85d14" \
+	cluster-infrastructure="openais" \
+	expected-quorum-votes="3" \
+	stonith-enabled="false" \
+	no-quorum-policy="ignore" \
+	last-lrm-refresh="1322236006"
 
 rsc_defaults $id="rsc-options" \
         resource-stickiness="100"
