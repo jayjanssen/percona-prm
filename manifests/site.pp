@@ -3,7 +3,7 @@ node percona1 {
         include percona::server
         include percona::replication
 	include percona::prm
-	include myhosts
+	include misc
 
 	Class['percona::repository'] -> Class['percona::server'] -> Class['percona::server::config'] -> Class['percona::replication'] -> Class['pacemaker'] -> Class['percona::prm']
 
@@ -17,7 +17,7 @@ node percona2 {
         include percona::server
         include percona::replication
 	include percona::prm
-	include myhosts
+	include misc
 
 	Class['percona::repository'] -> Class['percona::server'] -> Class['percona::server::config'] -> Class['percona::replication'] -> Class['pacemaker'] -> Class['percona::prm']
 
@@ -32,7 +32,7 @@ node percona3 {
         include percona::server
         include percona::replication
 	include percona::prm
-	include myhosts
+	include misc
 
 	Class['percona::repository'] -> Class['percona::server'] -> Class['percona::server::config'] -> Class['percona::replication'] -> Class['pacemaker'] -> Class['percona::prm']
 
